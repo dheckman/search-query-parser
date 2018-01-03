@@ -1,11 +1,11 @@
 class SearchQueryParser
   def initialize(string)
-    @tags = string.scan(/'([^']*)'/).flatten.reject { |tag| tag.to_s == "" }            
-    @text = string.gsub(/'([^']*)'/,"").split("tag:").join("").strip
+    @tags = string.scan(/((?<=tag:')+[^'.*?]*)/).flatten.reject { |tag| tag.to_s == "" }
+    @text = string.gsub(/tag:.*'.*?'/, "").strip
   end
 
   def text
-    @text
+    @text    
   end
 
   def tags
@@ -26,7 +26,12 @@ describe SearchQueryParser do
     it "allows text in any location" do 
       parser = described_class.new("text here tag:'a tag in the middle!'and here")
       expect(parser.text).to eql("text here and here") 
-    end 
+    end
+    it "allows text with single quotes" do
+      parser = described_class.new("'text here' tag:'tag here'")
+      expect(parser.text).to eql("'text here'")
+      expect(parser.tags).to eql(["tag here"])
+    end
   end
 
   describe '#tags' do
